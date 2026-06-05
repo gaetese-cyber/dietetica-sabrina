@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mi Dietética</title>
+<style>
+:root {
+  --green:       #059669;
+  --green-dark:  #047857;
+  --green-light: #d1fae5;
+  --amber:       #d97706;
+  --amber-light: #fef3c7;
+  --blue:        #2563eb;
+  --blue-light:  #dbeafe;
+  --red:         #dc2626;
+  --red-light:   #fee2e2;
+  --bg:          #f3f4f6;
+  --surface:     #ffffff;
+  --text:        #111827;
+  --text-2:      #374151;
+  --text-3:      #6b7280;
+  --border:      #e5e7eb;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 72px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+  padding: 14px 20px 16px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-left h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+.header-left p  { font-size: 11px; opacity: .7; margin-top: 1px; }
+
+.header-cal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.18);
+  border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 20px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.cal-icon { font-size: 18px; cursor: pointer; line-height: 1; }
+.month-input {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 110px;
+  color-scheme: dark;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 200;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.07);
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .15s;
+}
+.nav-btn .ni { font-size: 20px; line-height: 1; }
+.nav-btn.active { color: var(--green); }
+
+/* ── SECTIONS ── */
+.section { display: none; padding: 14px; }
+.section.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 12px;
+}
+
+/* ── RESULT CARD ── */
+.result-card {
+  background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.result-card::after {
+  content: '';
+  position: absolute;
+  right: -20px; top: -20px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,.07);
+  border-radius: 50%;
+}
+.result-card.neg { background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%); }
+.rc-label { font-size: 12px; opacity: .8; font-weight: 500; margin-bottom: 4px; }
+.rc-amount { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.05; }
+.rc-sub { font-size: 12px; opacity: .65; margin-top: 6px; }
+.rc-divider { height: 1px; background: rgba(255,255,255,.2); margin: 12px 0; }
+.rc-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; opacity: .85; margin-top: 6px; }
+.rc-row.rc-total { font-size: 15px; font-weight: 700; opacity: 1; margin-top: 8px; border-top: 1px solid rgba(255,255,255,.2); padding-top: 8px; }
+
+/* ── STATS GRID ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.07);
+}
+.sc-icon { font-size: 20px; margin-bottom: 6px; }
+.sc-label { font-size: 11px; color: var(--text-3); font-weight: 500; }
+.sc-value { font-size: 20px; font-weight: 800; margin-top: 2px; letter-spacing: -.5px; }
+.sc-breakdown { font-size: 11px; color: var(--text-3); margin-top: 5px; line-height: 1.7; }
+
+/* ── DAILY TABLE ── */
+.day-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 1fr 72px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+  font-size: 13px;
+}
+.day-row:last-child { border-bottom: none; }
+.day-date { font-weight: 700; color: var(--text-2); }
+.day-ing  { color: var(--green); font-size: 12px; }
+.day-egr  { color: var(--amber); font-size: 12px; }
+.day-res  { font-weight: 700; text-align: right; }
+.day-res.pos { color: var(--green); }
+.day-res.neg { color: var(--red); }
+.day-header {
+  display: grid;
+  grid-template-columns: 72px 1fr 1fr 72px;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 2px;
+}
+.pago-badge { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 2px 8px; margin-left: 6px; }
+.pago-efec { background: #d1fae5; color: #065f46; }
+.pago-trans { background: #dbeafe; color: #1e3a8a; }
+.c-green  { color: var(--green); }
+.c-amber  { color: var(--amber); }
+.c-blue   { color: var(--blue);  }
+.c-red    { color: var(--red);   }
+
+/* ── TRANSACTION ITEMS ── */
+.tx-list { margin: 0 -2px; }
+
+.tx-item {
+  display: flex;
+  align-items: center;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.tx-item:last-child { border-bottom: none; }
+
+.tx-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.tx-icon.v { background: var(--green-light); }
+.tx-icon.c { background: var(--amber-light); }
+.tx-icon.g { background: var(--blue-light);  }
+
+.tx-body { flex: 1; min-width: 0; }
+.tx-desc {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tx-meta { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+
+.tx-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tx-amount { font-size: 15px; font-weight: 700; }
+.tx-amount.pos { color: var(--green); }
+.tx-amount.neg { color: var(--amber); }
+.tx-del {
+  color: #d1d5db;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 50%;
+  transition: color .15s, background .15s;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tx-del:active { color: var(--red); background: var(--red-light); }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 5px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-input:focus { border-color: var(--green); }
+textarea.form-input { resize: vertical; min-height: 70px; }
+
+.amount-wrap { position: relative; }
+.amount-prefix {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.amount-field { padding-left: 34px !important; font-size: 22px !important; font-weight: 700; }
+
+/* ── CHIPS ── */
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip.sel {
+  background: var(--green-light);
+  border-color: var(--green);
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+/* ── BUTTONS ── */
+.btn-main {
+  width: 100%;
+  padding: 15px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 6px;
+  letter-spacing: .2px;
+}
+.btn-main:active { background: var(--green-dark); transform: scale(.98); }
+
+/* ── FIJOS ── */
+.fijo-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.fijo-row:last-child { border-bottom: none; }
+.fijo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+.fijo-name { flex: 1; font-size: 15px; }
+.fijo-amt { font-size: 15px; font-weight: 700; color: var(--amber); margin-right: 8px; }
+.fijo-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  margin-top: 2px;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap { margin-top: 10px; }
+.progress-track { background: var(--border); border-radius: 99px; height: 14px; overflow: hidden; margin: 6px 0; }
+.progress-fill { height: 100%; border-radius: 99px; background: var(--green); transition: width .5s ease; }
+.progress-fill.over { background: #2dc653; }
+.progress-fill.warn { background: var(--amber); }
+.progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.progress-pct { font-size: 22px; font-weight: 800; color: var(--green); margin-top: 6px; }
+
+/* ── COMPARISON ── */
+.cmp-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 8px; }
+.cmp-row:last-child { border-bottom: none; }
+.cmp-label { flex: 1; font-size: 14px; color: var(--text-2); }
+.cmp-vals { text-align: right; }
+.cmp-cur { font-size: 15px; font-weight: 700; }
+.cmp-prev { font-size: 11px; color: var(--text-3); }
+.cmp-badge { font-size: 11px; font-weight: 700; border-radius: 10px; padding: 2px 8px; margin-left: 6px; }
+.cmp-up   { background: #d1fae5; color: #065f46; }
+.cmp-down { background: #fee2e2; color: #7f1d1d; }
+.cmp-flat { background: var(--bg); color: var(--text-3); }
+
+/* ── BAR CHART ── */
+.bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding: 0 2px; overflow-x: auto; }
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; min-width: 28px; }
+.bar-rect { width: 22px; border-radius: 4px 4px 0 0; background: var(--green); min-height: 3px; transition: height .3s; }
+.bar-lbl  { font-size: 9px; color: var(--text-3); text-align: center; line-height: 1.2; }
+
+/* ── EXPORT BTN ── */
+.btn-export { width: 100%; padding: 14px; background: #1f2937; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.btn-export:active { background: #374151; }
+
+/* ── EMPTY / LOADING ── */
+.state-empty {
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--text-3);
+}
+.state-empty .ei { font-size: 34px; margin-bottom: 8px; }
+.state-empty p { font-size: 13px; }
+.state-loading { text-align: center; padding: 20px; color: var(--text-3); font-size: 14px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 78px; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: #1f2937;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all .25s;
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── SECTION HEADER ── */
+.sh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sh-title { font-size: 15px; font-weight: 700; }
+.sh-count {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-cal">
+    <label for="mesFiltro" class="cal-icon">📅</label>
+    <input type="month" class="month-input" id="mesFiltro" onchange="cargarResumen()">
+  </div>
+  <div class="header-left">
+    <h1>🌿 Mi Dietética</h1>
+    <p>Control de ingresos y gastos</p>
+  </div>
+</header>
+
+<!-- ══ RESUMEN ══ -->
+<div id="tab-resumen" class="section active">
+
+  <div class="result-card" id="result-card">
+    <div class="rc-label">Resultado del mes</div>
+    <div class="rc-amount" id="tot-r">$0</div>
+    <div class="rc-sub" id="tot-r-sub"></div>
+    <div class="rc-divider"></div>
+    <div class="rc-row">
+      <span>Saldo anterior</span>
+      <span id="saldo-ant">$0</span>
+    </div>
+    <div class="rc-row rc-total">
+      <span>Saldo total</span>
+      <span id="saldo-total">$0</span>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="sc-icon">💰</div>
+      <div class="sc-label">Ventas</div>
+      <div class="sc-value c-green" id="tot-v">$0</div>
+      <div class="sc-breakdown" id="tot-v-breakdown"></div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon">🛒</div>
+      <div class="sc-label">Proveedores</div>
+      <div class="sc-value c-amber" id="tot-c">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon">📋</div>
+      <div class="sc-label">Gastos</div>
+      <div class="sc-value c-blue" id="tot-g">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon">🏠</div>
+      <div class="sc-label">Costos fijos</div>
+      <div class="sc-value c-red" id="tot-f">$0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📅 Ganancia por día</div>
+    <div id="res-diario"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+</div>
+
+<!-- ══ VENTAS ══ -->
+<div id="tab-ventas" class="section">
+
+  <div class="card">
+    <div class="card-title">➕ Nueva venta</div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" type="date" id="v-fecha">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Forma de pago</label>
+      <div class="chips" id="chips-pago">
+        <div class="chip sel" data-val="Efectivo" onclick="selPago(this)">💵 Efectivo</div>
+        <div class="chip" data-val="Transferencia" onclick="selPago(this)">📲 Transferencia</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción <span style="font-weight:400;color:var(--text-3)">(opcional)</span></label>
+      <input class="form-input" type="text" id="v-desc" placeholder="Ej: venta del día">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="form-input amount-field" type="number" id="v-monto" placeholder="0" inputmode="decimal">
+      </div>
+    </div>
+    <button class="btn-main" onclick="guardar('ventas')">✅ Guardar venta</button>
+  </div>
+
+  <div class="card">
+    <div class="sh">
+      <span class="sh-title">Ventas registradas</span>
+      <span class="sh-count" id="cnt-ventas">0</span>
+    </div>
+    <div class="tx-list" id="lista-ventas"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+</div>
+
+<!-- ══ COMPRAS ══ -->
+<div id="tab-compras" class="section">
+
+  <div class="card">
+    <div class="card-title">➕ Nueva compra a proveedor</div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" type="date" id="c-fecha">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Proveedor</label>
+      <div class="chips" id="chips-prov"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="form-input" type="text" id="nuevo-prov" placeholder="Agregar proveedor..." style="flex:1;font-size:14px;padding:9px 12px">
+        <button onclick="agregarProv()" style="background:var(--green);color:white;border:none;border-radius:10px;padding:9px 16px;font-size:18px;font-weight:700;cursor:pointer;flex-shrink:0">+</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto total</label>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="form-input amount-field" type="number" id="c-monto" placeholder="0" inputmode="decimal">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas <span style="font-weight:400;color:var(--text-3)">(opcional)</span></label>
+      <textarea class="form-input" id="c-nota" placeholder="Ej: semillas, harinas, aceites..."></textarea>
+    </div>
+    <button class="btn-main" onclick="guardar('compras')">✅ Guardar compra</button>
+  </div>
+
+  <div class="card">
+    <div class="sh">
+      <span class="sh-title">Compras a proveedores</span>
+      <span class="sh-count" id="cnt-compras">0</span>
+    </div>
+    <div class="tx-list" id="lista-compras"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+</div>
+
+<!-- ══ GASTOS ══ -->
+<div id="tab-gastos" class="section">
+
+  <div class="card">
+    <div class="card-title">➕ Nuevo gasto</div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" type="date" id="g-fecha">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoría</label>
+      <div class="chips" id="chips">
+        <div class="chip sel" onclick="selChip(this)">Agua</div>
+        <div class="chip" onclick="selChip(this)">Luz</div>
+        <div class="chip" onclick="selChip(this)">Gas</div>
+        <div class="chip" onclick="selChip(this)">Limpieza</div>
+        <div class="chip" onclick="selChip(this)">Bolsas/envases</div>
+        <div class="chip" onclick="selChip(this)">Fletes</div>
+        <div class="chip" onclick="selChip(this)">Publicidad</div>
+        <div class="chip" onclick="selChip(this)">Teléfono</div>
+        <div class="chip" onclick="selChip(this)">Varios</div>
+        <div class="chip" onclick="selChip(this)">Otro</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <input class="form-input" type="text" id="g-desc" placeholder="Ej: bolsas herméticas">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="form-input amount-field" type="number" id="g-monto" placeholder="0" inputmode="decimal">
+      </div>
+    </div>
+    <button class="btn-main" onclick="guardar('gastos')">✅ Guardar gasto</button>
+  </div>
+
+  <div class="card">
+    <div class="sh">
+      <span class="sh-title">Gastos registrados</span>
+      <span class="sh-count" id="cnt-gastos">0</span>
+    </div>
+    <div class="tx-list" id="lista-gastos"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+</div>
+
+<!-- ══ FIJOS ══ -->
+<div id="tab-fijos" class="section">
+
+  <div class="card">
+    <div class="card-title">➕ Registrar costo fijo</div>
+    <div class="form-group">
+      <label class="form-label">Fecha de pago</label>
+      <input class="form-input" type="date" id="f-fecha">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoría</label>
+      <div class="chips" id="chips-fijo">
+        <div class="chip sel" data-val="Alquiler"    onclick="selFijo(this)">Alquiler</div>
+        <div class="chip"     data-val="Ing. Brutos" onclick="selFijo(this)">Ing. Brutos</div>
+        <div class="chip"     data-val="Monotributo" onclick="selFijo(this)">Monotributo</div>
+        <div class="chip"     data-val="DREI"        onclick="selFijo(this)">DREI</div>
+        <div class="chip"     data-val="Contador"    onclick="selFijo(this)">Contador</div>
+        <div class="chip"     data-val="Otro"        onclick="selFijo(this)">Otro</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="form-input amount-field" type="number" id="f-monto" placeholder="0" inputmode="decimal">
+      </div>
+    </div>
+    <button class="btn-main" onclick="guardar('fijos')">✅ Guardar</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏠 Pagos registrados</div>
+    <div id="lista-fijos"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card" id="card-prorrateo" style="display:none">
+    <div class="card-title">📊 Costo fijo por día activo</div>
+    <div id="fijo-prorrateo"></div>
+  </div>
+
+</div>
+
+<!-- ══ ANÁLISIS ══ -->
+<div id="tab-analisis" class="section">
+
+  <div class="card" id="card-meta">
+    <div class="card-title">🎯 Meta de ventas</div>
+    <div id="analisis-meta"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📈 Comparación con mes anterior</div>
+    <div id="analisis-cmp"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 Ventas por día</div>
+    <div id="analisis-chart"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📥 Exportar datos del mes</div>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Descarga un archivo Excel con todas las ventas, compras, gastos y fijos del mes seleccionado.</p>
+    <button class="btn-export" onclick="exportarMes()">📥 Descargar Excel (.csv)</button>
+  </div>
+
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="bottom-nav" style="font-size:9px">
+  <button class="nav-btn active" onclick="showTab('resumen',this)">
+    <span class="ni">📊</span>Resumen
+  </button>
+  <button class="nav-btn" onclick="showTab('ventas',this)">
+    <span class="ni">💰</span>Ventas
+  </button>
+  <button class="nav-btn" onclick="showTab('compras',this)">
+    <span class="ni">🛒</span>Proveedores
+  </button>
+  <button class="nav-btn" onclick="showTab('gastos',this)">
+    <span class="ni">📋</span>Gastos
+  </button>
+  <button class="nav-btn" onclick="showTab('fijos',this)">
+    <span class="ni">🏠</span>Fijos
+  </button>
+  <button class="nav-btn" onclick="showTab('analisis',this)">
+    <span class="ni">📈</span>Análisis
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbywO2xjeJ8eLb4vQsQvMlOA-YrvvpUhkr6WpioGEpm_Xs_GGILrtakmiiwwwB2hHjXY/exec';
+
+// ── Helpers ──────────────────────────────────────────────
+function hoy() { return new Date().toISOString().slice(0,10); }
+
+function fmt(n) {
+  return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits:0, maximumFractionDigits:0 });
+}
+
+function normD(f) { return f ? String(f).slice(0, 10) : ''; }
+
+function fmtF(f) {
+  const s = normD(f);
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function getMes(f) { return normD(f).slice(0, 7); }
+
+function mesLabel(ym) {
+  const M = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+             'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const [y,m] = ym.split('-');
+  return M[parseInt(m)-1] + ' ' + y;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function selChip(el) {
+  document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function getCat() {
+  const s = document.querySelector('#chips .chip.sel');
+  return s ? s.textContent : 'Varios';
+}
+
+function selPago(el) {
+  document.querySelectorAll('#chips-pago .chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function getPago() {
+  const s = document.querySelector('#chips-pago .chip.sel');
+  return s ? s.dataset.val : 'Efectivo';
+}
+
+function selFijo(el) {
+  document.querySelectorAll('#chips-fijo .chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function getFijo() {
+  const s = document.querySelector('#chips-fijo .chip.sel');
+  return s ? s.dataset.val : 'Alquiler';
+}
+
+const PROVS_DEFAULT = ['Tahona','Zucchi','Babka','Daridiet','Lomas','Gionutz','Distribuidora Real','Pepino'];
+
+function cargarChipsProv() {
+  const extra = JSON.parse(localStorage.getItem('proveedores_extra') || '[]');
+  const todos = [...PROVS_DEFAULT, ...extra];
+  const cont  = document.getElementById('chips-prov');
+  cont.innerHTML = todos.map((p, i) =>
+    `<div class="chip${i===0?' sel':''}" data-val="${p}" onclick="selProv(this)">${p}</div>`
+  ).join('');
+}
+
+function selProv(el) {
+  document.querySelectorAll('#chips-prov .chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function getProv() {
+  const s = document.querySelector('#chips-prov .chip.sel');
+  return s ? s.dataset.val : '';
+}
+
+function agregarProv() {
+  const input  = document.getElementById('nuevo-prov');
+  const nombre = input.value.trim();
+  if (!nombre) return;
+  const extra = JSON.parse(localStorage.getItem('proveedores_extra') || '[]');
+  if (![...PROVS_DEFAULT, ...extra].includes(nombre)) {
+    extra.push(nombre);
+    localStorage.setItem('proveedores_extra', JSON.stringify(extra));
+  }
+  cargarChipsProv();
+  // seleccionar el recién agregado
+  const chips = document.querySelectorAll('#chips-prov .chip');
+  chips.forEach(c => { if (c.dataset.val === nombre) selProv(c); });
+  input.value = '';
+}
+
+// ── API ──────────────────────────────────────────────────
+async function leer(tipo) {
+  try {
+    const res = await fetch(`${URL_SCRIPT}?tipo=${tipo}`);
+    const raw = await res.json();
+    return raw.filter(r => r[0] && r[0] !== 'id');
+  } catch {
+    return [];
+  }
+}
+
+async function escribir(tipo, fila) {
+  // text/plain evita el preflight CORS que bloquea a Google Apps Script
+  const res = await fetch(URL_SCRIPT, {
+    method: 'POST',
+    body: JSON.stringify({ tipo, fila }),
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+  });
+  return res;
+}
+
+// ── Tabs ─────────────────────────────────────────────────
+function showTab(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'resumen') cargarResumen();
+  else if (name === 'analisis') cargarAnalisis();
+  else cargarLista(name);
+}
+
+// ── Guardar ──────────────────────────────────────────────
+async function guardar(tipo) {
+  let fila = [];
+  const id = Date.now();
+
+  if (tipo === 'ventas') {
+    const fecha  = document.getElementById('v-fecha').value || hoy();
+    const desc   = document.getElementById('v-desc').value.trim() || 'Venta';
+    const monto  = parseFloat(document.getElementById('v-monto').value);
+    const metodo = getPago();
+    if (!monto || monto <= 0) { toast('⚠️ Ingresá un monto'); return; }
+    fila = [id, fecha, desc, monto, metodo];
+    document.getElementById('v-fecha').value = hoy();
+    document.getElementById('v-desc').value  = '';
+    document.getElementById('v-monto').value = '';
+    document.querySelectorAll('#chips-pago .chip').forEach((c,i) => c.classList.toggle('sel', i===0));
+  }
+
+  if (tipo === 'compras') {
+    const fecha = document.getElementById('c-fecha').value || hoy();
+    const prov  = getProv() || 'Proveedor';
+    const monto = parseFloat(document.getElementById('c-monto').value);
+    const nota  = document.getElementById('c-nota').value.trim();
+    if (!monto || monto <= 0) { toast('⚠️ Ingresá un monto'); return; }
+    fila = [id, fecha, prov, monto, nota];
+    document.getElementById('c-fecha').value = '';
+    document.getElementById('c-monto').value = '';
+    document.getElementById('c-nota').value  = '';
+  }
+
+  if (tipo === 'gastos') {
+    const fecha = document.getElementById('g-fecha').value || hoy();
+    const cat   = getCat();
+    const desc  = document.getElementById('g-desc').value.trim() || cat;
+    const monto = parseFloat(document.getElementById('g-monto').value);
+    if (!monto || monto <= 0) { toast('⚠️ Ingresá un monto'); return; }
+    fila = [id, fecha, cat, desc, monto];
+    document.getElementById('g-fecha').value = hoy();
+    document.getElementById('g-desc').value  = '';
+    document.getElementById('g-monto').value = '';
+  }
+
+  if (tipo === 'fijos') {
+    const fecha    = document.getElementById('f-fecha').value || hoy();
+    const concepto = getFijo();
+    const monto    = parseFloat(document.getElementById('f-monto').value);
+    if (!monto || monto <= 0) { toast('⚠️ Ingresá un monto'); return; }
+    fila = [id, fecha, concepto, monto];
+    document.getElementById('f-fecha').value = hoy();
+    document.getElementById('f-monto').value = '';
+    document.querySelectorAll('#chips-fijo .chip').forEach((c,i) => c.classList.toggle('sel', i===0));
+  }
+
+  toast('⏳ Guardando...');
+  try {
+    await escribir(tipo, fila);
+    toast('✅ ¡Guardado!');
+    setTimeout(() => cargarLista(tipo), 400);
+  } catch {
+    toast('❌ Error al guardar. Revisá la conexión.');
+  }
+}
+
+// ── Eliminar ─────────────────────────────────────────────
+async function eliminar(tipo, id) {
+  try {
+    await escribir('_eliminados', [Date.now(), tipo, id]);
+    toast('🗑️ Eliminado');
+    setTimeout(() => cargarLista(tipo), 400);
+  } catch {
+    toast('❌ Error al eliminar. Revisá la conexión.');
+  }
+}
+
+// ── Render tx item ────────────────────────────────────────
+function txItem({ icon, iconClass, desc, meta, monto, tipo, id, isExpense }) {
+  return `<div class="tx-item">
+    <div class="tx-icon ${iconClass}">${icon}</div>
+    <div class="tx-body">
+      <div class="tx-desc">${desc}</div>
+      <div class="tx-meta">${meta}</div>
+    </div>
+    <div class="tx-right">
+      <span class="tx-amount ${isExpense ? 'neg' : 'pos'}">${isExpense ? '−' : '+'}${fmt(monto)}</span>
+      ${id ? `<button class="tx-del" onclick="eliminar('${tipo}',${id})">✕</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function emptyState(icon, msg) {
+  return `<div class="state-empty"><div class="ei">${icon}</div><p>${msg}</p></div>`;
+}
+
+// ── Cargar lista ──────────────────────────────────────────
+async function cargarLista(tipo) {
+  const cont = document.getElementById('lista-' + tipo);
+  cont.innerHTML = '<div class="state-loading">Cargando...</div>';
+
+  let datos = await leer(tipo);
+  const elim = await leer('_eliminados');
+  const idsElim = new Set(elim.map(r => String(r[2])));
+  datos = datos.filter(r => !idsElim.has(String(r[0])));
+
+  const cnt = document.getElementById('cnt-' + tipo);
+  if (cnt) cnt.textContent = datos.length;
+
+  if (!datos.length) {
+    cont.innerHTML = emptyState('📭', 'Sin registros aún');
+    return;
+  }
+
+  const sorted = [...datos].sort((a,b) => String(b[1]).localeCompare(String(a[1])));
+
+  if (tipo === 'fijos') {
+    const pF = r => /^\d{4}-\d{2}/.test(String(r[1]));
+    const total = datos.reduce((s,r) => s + parseFloat((pF(r) ? r[3] : r[2])||0), 0);
+    const sortedF = [...datos].sort((a,b) => {
+      const fa = pF(a) ? normD(a[1]) : '';
+      const fb = pF(b) ? normD(b[1]) : '';
+      return fb.localeCompare(fa);
+    });
+    cont.innerHTML = sortedF.map(r => {
+      const fecha    = pF(r) ? fmtF(r[1]) : '—';
+      const concepto = pF(r) ? r[2] : r[1];
+      const monto    = parseFloat((pF(r) ? r[3] : r[2])||0);
+      return `<div class="fijo-row">
+        <div class="fijo-dot"></div>
+        <div class="fijo-name">
+          <div>${concepto}</div>
+          <div style="font-size:11px;color:var(--text-3)">${fecha}</div>
+        </div>
+        <span class="fijo-amt">${fmt(monto)}</span>
+        <button class="tx-del" onclick="eliminar('fijos',${r[0]})">✕</button>
+      </div>`;
+    }).join('') + `<div class="fijo-total"><span>TOTAL</span><span style="color:var(--amber)">${fmt(total)}</span></div>`;
+
+    // Prorrateo por día activo
+    const elim2    = await leer('_eliminados');
+    const ids2     = new Set(elim2.map(r => String(r[2])));
+    const [V2,C2,G2] = await Promise.all([leer('ventas'),leer('compras'),leer('gastos')]);
+    const fil2 = arr => arr.filter(r => !ids2.has(String(r[0])));
+    const mesFijo = hoy().slice(0,7);
+    const diasAct = new Set([
+      ...fil2(V2).filter(r => getMes(r[1])===mesFijo).map(r => normD(r[1])),
+      ...fil2(C2).filter(r => getMes(r[1])===mesFijo).map(r => normD(r[1])),
+      ...fil2(G2).filter(r => getMes(r[1])===mesFijo).map(r => normD(r[1])),
+    ].filter(Boolean)).size;
+    const totMes = datos.filter(r => pF(r) && getMes(normD(r[1]))===mesFijo)
+                        .reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const card = document.getElementById('card-prorrateo');
+    const div  = document.getElementById('fijo-prorrateo');
+    if (totMes > 0 && diasAct > 0) {
+      card.style.display = '';
+      div.innerHTML = `
+        <div class="cf-row"><span>Total fijos del mes</span><span style="color:var(--amber);font-weight:700">${fmt(totMes)}</span></div>
+        <div class="cf-row"><span>Días con actividad</span><span style="font-weight:700">${diasAct} días</span></div>
+        <div class="cf-row" style="font-weight:700;font-size:15px"><span>Costo por día activo</span><span style="color:var(--red)">${fmt(Math.round(totMes/diasAct))}</span></div>`;
+    } else {
+      card.style.display = 'none';
+    }
+    return;
+  }
+
+  cont.innerHTML = sorted.map(r => {
+    if (tipo === 'ventas') {
+      const badge = r[4] === 'Transferencia'
+        ? '<span class="pago-badge pago-trans">📲 Transf.</span>'
+        : '<span class="pago-badge pago-efec">💵 Efectivo</span>';
+      return txItem({ icon:'💰', iconClass:'v', desc: r[2] + badge, meta:fmtF(r[1]), monto:r[3], tipo, id:r[0], isExpense:false });
+    }
+    if (tipo === 'compras') return txItem({ icon:'🛒', iconClass:'c', desc:r[2], meta:fmtF(r[1]) + (r[4] ? ' · '+r[4] : ''), monto:r[3], tipo, id:r[0], isExpense:true });
+    if (tipo === 'gastos')  return txItem({ icon:'📋', iconClass:'g', desc:r[3], meta:fmtF(r[1]) + ' · '+r[2], monto:r[4], tipo, id:r[0], isExpense:true });
+  }).join('');
+}
+
+// ── Resumen ───────────────────────────────────────────────
+async function cargarResumen() {
+
+  const elim = await leer('_eliminados');
+  const idsElim = new Set(elim.map(r => String(r[2])));
+
+  const [ventas, compras, gastos, fijos] = await Promise.all([
+    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos')
+  ]);
+
+  const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
+  const V = fil(ventas), C = fil(compras), G = fil(gastos), F = fil(fijos);
+
+  const ahora = new Date().toISOString().slice(0,7);
+  const sel   = document.getElementById('mesFiltro');
+  if (!sel.value) sel.value = ahora;
+  const mes   = sel.value;
+
+  // Para saldo acumulado necesitamos todos los meses con datos
+  const todos  = [...V,...C,...G].map(r => getMes(r[1])).filter(Boolean);
+  const meses  = [...new Set([ahora,...todos])].sort();
+  const vM = V.filter(r => getMes(r[1]) === mes);
+  const cM = C.filter(r => getMes(r[1]) === mes);
+  const gM = G.filter(r => getMes(r[1]) === mes);
+
+  const pF   = r => /^\d{4}-\d{2}/.test(String(r[1]));
+  const FM   = F.filter(r => pF(r) && getMes(normD(r[1])) === mes);
+  const totV = vM.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const totC = cM.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const totG = gM.reduce((s,r) => s + parseFloat(r[4]||0), 0);
+  const totF = FM.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const res  = totV - totC - totG - totF;
+
+  const vEfec   = vM.filter(r => !r[4] || r[4] === 'Efectivo').reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const vTrans  = vM.filter(r => r[4] === 'Transferencia').reduce((s,r) => s + parseFloat(r[3]||0), 0);
+
+  document.getElementById('tot-v').textContent = fmt(totV);
+  document.getElementById('tot-v-breakdown').innerHTML =
+    `💵 ${fmt(vEfec)}<br>📲 ${fmt(vTrans)}`;
+  document.getElementById('tot-c').textContent = fmt(totC);
+  document.getElementById('tot-g').textContent = fmt(totG);
+  document.getElementById('tot-f').textContent = fmt(totF);
+
+  // Saldo acumulado de meses anteriores
+  const mesesAnt = meses.filter(m => m < mes);
+  const saldoAnt = mesesAnt.reduce((acc, m) => {
+    const tV = V.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const tC = C.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const tG = G.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[4]||0), 0);
+    const tF = F.filter(r => pF(r) && getMes(normD(r[1])) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    return acc + (tV - tC - tG - tF);
+  }, 0);
+  const saldoTotal = saldoAnt + res;
+
+  const rc  = document.getElementById('result-card');
+  const ra  = document.getElementById('tot-r');
+  const rsb = document.getElementById('tot-r-sub');
+  rsb.textContent = res >= 0 ? '✅ Ganancia del mes' : '⚠️ Pérdida del mes';
+  if (res >= 0) { ra.textContent = fmt(res); rc.classList.remove('neg'); }
+  else          { ra.textContent = '−' + fmt(Math.abs(res)); rc.classList.add('neg'); }
+
+  const fmtSaldo = n => (n >= 0 ? '+' : '−') + fmt(Math.abs(n));
+  document.getElementById('saldo-ant').textContent   = fmtSaldo(saldoAnt);
+  document.getElementById('saldo-total').textContent = fmtSaldo(saldoTotal);
+
+  // ── Ganancia por día ──
+  const diasMap = {};
+  const addDia = (fecha, ing, egr) => {
+    const f = normD(fecha);
+    if (!f) return;
+    if (!diasMap[f]) diasMap[f] = { ing: 0, egr: 0 };
+    diasMap[f].ing += ing;
+    diasMap[f].egr += egr;
+  };
+  vM.forEach(r => addDia(r[1], parseFloat(r[3]||0), 0));
+  cM.forEach(r => addDia(r[1], 0, parseFloat(r[3]||0)));
+  gM.forEach(r => addDia(r[1], 0, parseFloat(r[4]||0)));
+  FM.forEach(r => addDia(r[1], 0, parseFloat(r[3]||0)));
+
+  const dias = Object.keys(diasMap).sort().reverse();
+  const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  const totalIngDia = dias.reduce((s,f) => s + diasMap[f].ing, 0);
+  const totalEgrDia = dias.reduce((s,f) => s + diasMap[f].egr, 0);
+  const totalNeto   = totalIngDia - totalEgrDia;
+
+  document.getElementById('res-diario').innerHTML = dias.length
+    ? `<div class="day-header">
+        <span>Día</span><span>Ventas</span><span>Egresos</span><span style="text-align:right">Result.</span>
+       </div>` +
+      dias.map(f => {
+        const { ing, egr } = diasMap[f];
+        const neto = ing - egr;
+        const d        = f.slice(8, 10);
+        const label    = DIAS[new Date(f + 'T12:00:00').getDay()] + ' ' + d;
+        return `<div class="day-row">
+          <span class="day-date">${label}</span>
+          <span class="day-ing">+${fmt(ing)}</span>
+          <span class="day-egr">−${fmt(egrTotal)}</span>
+          <span class="day-res ${neto >= 0 ? 'pos' : 'neg'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</span>
+        </div>`;
+      }).join('') +
+      `<div class="day-row" style="font-weight:700;border-top:2px solid var(--border);margin-top:4px;padding-top:10px">
+          <span class="day-date">TOTAL</span>
+          <span class="day-ing">+${fmt(totalIngDia)}</span>
+          <span class="day-egr">−${fmt(totalEgrDia)}</span>
+          <span class="day-res ${totalNeto >= 0 ? 'pos' : 'neg'}">${totalNeto >= 0 ? '+' : '−'}${fmt(Math.abs(totalNeto))}</span>
+        </div>`
+    : emptyState('📅', 'Sin movimientos en este mes');
+}
+
+// ── Análisis ─────────────────────────────────────────────
+const META_DIA = 100000;
+
+async function cargarAnalisis() {
+  ['analisis-meta','analisis-cmp','analisis-chart'].forEach(id =>
+    document.getElementById(id).innerHTML = '<div class="state-loading">Cargando...</div>');
+
+  const mes   = document.getElementById('mesFiltro').value || hoy().slice(0,7);
+  const [y,m] = mes.split('-').map(Number);
+  const mesPrev = m === 1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,'0')}`;
+
+  const elim = await leer('_eliminados');
+  const idsElim = new Set(elim.map(r => String(r[2])));
+  const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
+
+  const [ventas, compras, gastos, fijos] = await Promise.all([
+    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos')
+  ]);
+  const V = fil(ventas), C = fil(compras), G = fil(gastos), F = fil(fijos);
+
+  const pFijo = r => /^\d{4}-\d{2}/.test(String(r[1]));
+  const vM  = V.filter(r => getMes(r[1]) === mes);
+  const cM  = C.filter(r => getMes(r[1]) === mes);
+  const gM  = G.filter(r => getMes(r[1]) === mes);
+  const fM  = F.filter(r => pFijo(r) && getMes(normD(r[1])) === mes);
+  const vP  = V.filter(r => getMes(r[1]) === mesPrev);
+  const cP  = C.filter(r => getMes(r[1]) === mesPrev);
+  const gP  = G.filter(r => getMes(r[1]) === mesPrev);
+  const fP  = F.filter(r => pFijo(r) && getMes(normD(r[1])) === mesPrev);
+
+  const sum = (arr, i) => arr.reduce((s,r) => s + parseFloat(r[i]||0), 0);
+  const totVM = sum(vM,3), totCM = sum(cM,3), totGM = sum(gM,4), totFM = sum(fM,3);
+  const totVP = sum(vP,3), totCP = sum(cP,3), totGP = sum(gP,4), totFP = sum(fP,3);
+  const resM  = totVM - totCM - totGM - totFM;
+  const resP  = totVP - totCP - totGP - totFP;
+
+  // ── META ──
+  const diasConVentas = new Set(vM.map(r => normD(r[1])).filter(Boolean)).size || 0;
+  const metaMes = META_DIA * diasConVentas;
+  const pct     = metaMes > 0 ? Math.min(totVM / metaMes * 100, 100) : 0;
+  const pctReal = metaMes > 0 ? totVM / metaMes * 100 : 0;
+  const fillClass = pctReal >= 100 ? 'over' : pctReal < 50 ? 'warn' : '';
+  document.getElementById('analisis-meta').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <div class="progress-pct">${Math.round(pctReal)}%</div>
+      <div style="font-size:12px;color:var(--text-3)">Meta: ${fmt(META_DIA)}/día activo</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill ${fillClass}" style="width:${pct}%"></div>
+    </div>
+    <div class="progress-meta">
+      <span>Ventas: <strong>${fmt(totVM)}</strong></span>
+      <span>Meta del mes: <strong>${fmt(metaMes)}</strong> (${diasConVentas} días)</span>
+    </div>
+    ${pctReal >= 100
+      ? `<div style="color:#2dc653;font-size:13px;font-weight:700;margin-top:8px">🎉 ¡Meta superada! +${fmt(totVM - metaMes)}</div>`
+      : `<div style="color:var(--text-3);font-size:13px;margin-top:8px">Faltan <strong style="color:var(--text)">${fmt(metaMes - totVM)}</strong> para la meta</div>`
+    }`;
+
+  // ── COMPARACIÓN ──
+  const cmpRow = (label, cur, prev, isExpense) => {
+    const diff = prev === 0 ? null : ((cur - prev) / Math.abs(prev) * 100);
+    const badge = diff === null ? '' :
+      diff === 0 ? `<span class="cmp-badge cmp-flat">= 0%</span>` :
+      ((!isExpense && diff > 0) || (isExpense && diff < 0))
+        ? `<span class="cmp-badge cmp-up">${diff > 0 ? '↑' : '↓'} ${Math.abs(diff).toFixed(0)}%</span>`
+        : `<span class="cmp-badge cmp-down">${diff > 0 ? '↑' : '↓'} ${Math.abs(diff).toFixed(0)}%</span>`;
+    return `<div class="cmp-row">
+      <div class="cmp-label">${label}</div>
+      <div class="cmp-vals">
+        <div class="cmp-cur">${fmt(cur)}${badge}</div>
+        <div class="cmp-prev">Mes ant.: ${fmt(prev)}</div>
+      </div>
+    </div>`;
+  };
+  document.getElementById('analisis-cmp').innerHTML =
+    cmpRow('💰 Ventas',   totVM, totVP, false) +
+    cmpRow('🛒 Compras',  totCM, totCP, true)  +
+    cmpRow('📋 Gastos',   totGM, totGP, true)  +
+    cmpRow('🏠 Fijos',    totFM, totFP, true)  +
+    cmpRow('✅ Resultado', resM,  resP,  false);
+
+  // ── GRÁFICO ──
+  const diasMap = {};
+  vM.forEach(r => { const d = normD(r[1]); if(d) diasMap[d] = (diasMap[d]||0) + parseFloat(r[3]||0); });
+  const dias = Object.keys(diasMap).sort();
+  const maxV = Math.max(...Object.values(diasMap), 1);
+  const DIAS = ['D','L','M','X','J','V','S'];
+  document.getElementById('analisis-chart').innerHTML = dias.length
+    ? `<div class="bar-chart">` +
+      dias.map(f => {
+        const v = diasMap[f];
+        const h = Math.round((v / maxV) * 110) + 10;
+        const d = f.slice(8,10);
+        const dow = DIAS[new Date(f+'T12:00:00').getDay()];
+        return `<div class="bar-col">
+          <div class="bar-rect" style="height:${h}px" title="${fmtF(f)}: ${fmt(v)}"></div>
+          <div class="bar-lbl">${dow}<br>${d}</div>
+        </div>`;
+      }).join('') + `</div>
+      <div style="font-size:11px;color:var(--text-3);margin-top:8px;text-align:right">Máx: ${fmt(maxV)}</div>`
+    : emptyState('📊', 'Sin ventas registradas este mes');
+}
+
+// ── Exportar ──────────────────────────────────────────────
+async function exportarMes() {
+  const mes  = document.getElementById('mesFiltro').value || hoy().slice(0,7);
+  const elim = await leer('_eliminados');
+  const idsElim = new Set(elim.map(r => String(r[2])));
+  const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
+
+  const [ventas, compras, gastos, fijos] = await Promise.all([
+    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos')
+  ]);
+  const pFijo = r => /^\d{4}-\d{2}/.test(String(r[1]));
+
+  const rows = [
+    ['Tipo','Fecha','Descripción','Monto','Extra'],
+    ...fil(ventas).filter(r => getMes(r[1])===mes)
+      .map(r => ['Venta', normD(r[1]), r[2], r[3], r[4]||'']),
+    ...fil(compras).filter(r => getMes(r[1])===mes)
+      .map(r => ['Compra', normD(r[1]), r[2], r[3], r[4]||'']),
+    ...fil(gastos).filter(r => getMes(r[1])===mes)
+      .map(r => ['Gasto', normD(r[1]), `${r[2]} - ${r[3]}`, r[4], '']),
+    ...fil(fijos).filter(r => pFijo(r) && getMes(normD(r[1]))===mes)
+      .map(r => ['Fijo', normD(r[1]), r[2], r[3], '']),
+  ];
+
+  const csv = '﻿' + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `dietetica_${mes}.csv`;
+  a.click();
+  toast('📥 Descargando...');
+}
+
+// ── Init ──────────────────────────────────────────────────
+document.getElementById('v-fecha').value   = hoy();
+document.getElementById('g-fecha').value   = hoy();
+document.getElementById('f-fecha').value   = hoy();
+document.getElementById('mesFiltro').value = hoy().slice(0,7);
+cargarChipsProv();
+cargarResumen();
+</script>
+</body>
+</html>
