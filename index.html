@@ -998,7 +998,7 @@ async function cargarLista(tipo) {
     const ids2     = new Set(elim2.map(r => String(r[2])));
     const [V2,C2,G2] = await Promise.all([leer('ventas'),leer('compras'),leer('gastos')]);
     const fil2 = arr => arr.filter(r => !ids2.has(String(r[0])));
-    const mesFijo = hoy().slice(0,7);
+    const mesFijo = document.getElementById('mesFiltro').value || hoy().slice(0,7);
     const diasAct = new Set([
       ...fil2(V2).filter(r => getMes(r[1])===mesFijo).map(r => normD(r[1])),
       ...fil2(C2).filter(r => getMes(r[1])===mesFijo).map(r => normD(r[1])),
@@ -1130,7 +1130,7 @@ async function cargarResumen() {
         return `<div class="day-row">
           <span class="day-date">${label}</span>
           <span class="day-ing">+${fmt(ing)}</span>
-          <span class="day-egr">−${fmt(egrTotal)}</span>
+          <span class="day-egr">−${fmt(egr)}</span>
           <span class="day-res ${neto >= 0 ? 'pos' : 'neg'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</span>
         </div>`;
       }).join('') +
@@ -1281,6 +1281,7 @@ async function exportarMes() {
 
 // ── Init ──────────────────────────────────────────────────
 document.getElementById('v-fecha').value   = hoy();
+document.getElementById('c-fecha').value   = hoy();
 document.getElementById('g-fecha').value   = hoy();
 document.getElementById('f-fecha').value   = hoy();
 document.getElementById('mesFiltro').value = hoy().slice(0,7);
