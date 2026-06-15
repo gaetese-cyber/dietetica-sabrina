@@ -6,21 +6,24 @@
 <title>Mi Dietética</title>
 <style>
 :root {
-  --green:       #059669;
-  --green-dark:  #047857;
-  --green-light: #d1fae5;
-  --amber:       #d97706;
-  --amber-light: #fef3c7;
-  --blue:        #2563eb;
-  --blue-light:  #dbeafe;
-  --red:         #dc2626;
-  --red-light:   #fee2e2;
-  --bg:          #f3f4f6;
-  --surface:     #ffffff;
-  --text:        #111827;
-  --text-2:      #374151;
-  --text-3:      #6b7280;
-  --border:      #e5e7eb;
+  --green:        #059669;
+  --green-dark:   #047857;
+  --green-light:  #d1fae5;
+  --amber:        #d97706;
+  --amber-light:  #fef3c7;
+  --blue:         #2563eb;
+  --blue-light:   #dbeafe;
+  --red:          #dc2626;
+  --red-light:    #fee2e2;
+  --purple:       #7c3aed;
+  --purple-dark:  #6d28d9;
+  --purple-light: #ede9fe;
+  --bg:           #f3f4f6;
+  --surface:      #ffffff;
+  --text:         #111827;
+  --text-2:       #374151;
+  --text-3:       #6b7280;
+  --border:       #e5e7eb;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -201,10 +204,35 @@ body {
 .pago-badge { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 2px 8px; margin-left: 6px; }
 .pago-efec { background: #d1fae5; color: #065f46; }
 .pago-trans { background: #dbeafe; color: #1e3a8a; }
-.c-green  { color: var(--green); }
-.c-amber  { color: var(--amber); }
-.c-blue   { color: var(--blue);  }
-.c-red    { color: var(--red);   }
+.c-green  { color: var(--green);  }
+.c-amber  { color: var(--amber);  }
+.c-blue   { color: var(--blue);   }
+.c-red    { color: var(--red);    }
+.c-purple { color: var(--purple); }
+
+.tx-icon.r { background: var(--purple-light); }
+.tx-amount.retiro { color: var(--purple); }
+
+.retiro-banner {
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.retiro-banner::after {
+  content: '';
+  position: absolute;
+  right: -15px; top: -15px;
+  width: 70px; height: 70px;
+  background: rgba(255,255,255,.08);
+  border-radius: 50%;
+}
+.retiro-banner .rb-label { font-size: 11px; opacity: .7; font-weight: 500; }
+.retiro-banner .rb-amount { font-size: 22px; font-weight: 800; margin-top: 2px; letter-spacing: -0.5px; }
+.retiro-banner .rb-sub { font-size: 11px; opacity: .6; margin-top: 4px; }
 
 /* ── TRANSACTION ITEMS ── */
 .tx-list { margin: 0 -2px; }
@@ -258,6 +286,47 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .tx-del:active { color: var(--red); background: var(--red-light); }
+.tx-edit {
+  color: #d1d5db;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 50%;
+  transition: color .15s, background .15s;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tx-edit:active { color: var(--blue); background: var(--blue-light); }
+
+.edit-bar {
+  background: var(--blue-light);
+  border: 2px solid var(--blue);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.edit-bar-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+}
+.edit-bar-cancel {
+  background: white;
+  border: 1.5px solid var(--blue);
+  color: var(--blue);
+  border-radius: 8px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
 
 /* ── FORM ── */
 .form-group { margin-bottom: 14px; }
@@ -438,6 +507,123 @@ textarea.form-input { resize: vertical; min-height: 70px; }
   font-size: 12px;
   font-weight: 700;
 }
+
+/* ── DAY DETAIL MODAL ── */
+.day-row.clickable {
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 0 -6px;
+  padding: 9px 6px;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.day-row.clickable:active { background: var(--green-light); }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 500;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s, visibility .25s;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open { opacity: 1; visibility: visible; }
+
+.modal-sheet {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  max-height: 85vh;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  z-index: 510;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.22,.68,0,1.0);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 32px rgba(0,0,0,.18);
+}
+.modal-sheet.open { transform: translateY(0); }
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: #d1d5db;
+  border-radius: 99px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+}
+.modal-header h2 {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.modal-close {
+  background: var(--bg);
+  border: none;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-close:active { background: var(--border); }
+
+.modal-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 0 20px 14px;
+  flex-shrink: 0;
+}
+.ms-item {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.ms-label { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .5px; }
+.ms-value { font-size: 16px; font-weight: 800; margin-top: 2px; letter-spacing: -.5px; }
+
+.modal-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 20px 24px;
+  flex: 1;
+}
+
+.detail-section { margin-bottom: 16px; }
+.detail-section:last-child { margin-bottom: 0; }
+.ds-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--border);
+}
+.ds-empty {
+  font-size: 13px;
+  color: var(--text-3);
+  padding: 8px 0;
+  font-style: italic;
+}
 </style>
 </head>
 <body>
@@ -457,18 +643,24 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 <div id="tab-resumen" class="section active">
 
   <div class="result-card" id="result-card">
-    <div class="rc-label">Resultado del mes</div>
+    <div class="rc-label">Ganancia del negocio</div>
     <div class="rc-amount" id="tot-r">$0</div>
     <div class="rc-sub" id="tot-r-sub"></div>
     <div class="rc-divider"></div>
     <div class="rc-row">
-      <span>Saldo anterior</span>
-      <span id="saldo-ant">$0</span>
+      <span>💸 Retiros personales</span>
+      <span id="tot-ret" style="color:#c4b5fd">$0</span>
     </div>
     <div class="rc-row rc-total">
-      <span>Saldo total</span>
-      <span id="saldo-total">$0</span>
+      <span>💰 Disponible en caja</span>
+      <span id="saldo-disponible">$0</span>
     </div>
+  </div>
+
+  <div class="retiro-banner" id="retiro-card" style="display:none">
+    <div class="rb-label">💸 Ganancias retiradas</div>
+    <div class="rb-amount" id="ret-big">$0</div>
+    <div class="rb-sub" id="ret-sub"></div>
   </div>
 
   <div class="stats-grid">
@@ -498,6 +690,28 @@ textarea.form-input { resize: vertical; min-height: 70px; }
   <div class="card">
     <div class="card-title">📅 Ganancia por día</div>
     <div id="res-diario"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <!-- Análisis integrado en Resumen -->
+  <div class="card" id="card-meta">
+    <div class="card-title">🎯 Meta de ventas</div>
+    <div id="analisis-meta"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📈 Comparación con mes anterior</div>
+    <div id="analisis-cmp"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 Ventas por día</div>
+    <div id="analisis-chart"><div class="state-loading">Cargando...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📥 Exportar datos del mes</div>
+    <p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Descarga un archivo Excel con todas las ventas, compras, gastos, fijos y retiros del mes seleccionado.</p>
+    <button class="btn-export" onclick="exportarMes()">📥 Descargar Excel (.csv)</button>
   </div>
 
 </div>
@@ -673,28 +887,43 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 
 </div>
 
-<!-- ══ ANÁLISIS ══ -->
-<div id="tab-analisis" class="section">
+<!-- ══ RETIROS ══ -->
+<div id="tab-retiros" class="section">
 
-  <div class="card" id="card-meta">
-    <div class="card-title">🎯 Meta de ventas</div>
-    <div id="analisis-meta"><div class="state-loading">Cargando...</div></div>
+  <div class="retiro-banner">
+    <div class="rb-label">💸 ¿Qué es un retiro?</div>
+    <div class="rb-sub" style="opacity:.85;font-size:13px;margin-top:6px;line-height:1.5">
+      Es dinero que la dueña saca de la caja para <strong>uso personal</strong> (regalos, compras propias, etc.).<br>
+      No es un gasto del negocio — es una <strong>ganancia que se retira</strong>.
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-title">📈 Comparación con mes anterior</div>
-    <div id="analisis-cmp"><div class="state-loading">Cargando...</div></div>
+    <div class="card-title">➕ Registrar retiro personal</div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" type="date" id="r-fecha">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <input class="form-input" type="text" id="r-desc" placeholder="Ej: regalo cumple, compras personales...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <div class="amount-wrap">
+        <span class="amount-prefix">$</span>
+        <input class="form-input amount-field" type="number" id="r-monto" placeholder="0" inputmode="decimal">
+      </div>
+    </div>
+    <button class="btn-main" onclick="guardar('retiros')" style="background:var(--purple)">💸 Guardar retiro</button>
   </div>
 
   <div class="card">
-    <div class="card-title">📊 Ventas por día</div>
-    <div id="analisis-chart"><div class="state-loading">Cargando...</div></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">📥 Exportar datos del mes</div>
-    <p style="font-size:13px;color:var(--text-3);margin-bottom:12px">Descarga un archivo Excel con todas las ventas, compras, gastos y fijos del mes seleccionado.</p>
-    <button class="btn-export" onclick="exportarMes()">📥 Descargar Excel (.csv)</button>
+    <div class="sh">
+      <span class="sh-title">Retiros registrados</span>
+      <span class="sh-count" id="cnt-retiros" style="background:var(--purple-light);color:var(--purple-dark)">0</span>
+    </div>
+    <div class="tx-list" id="lista-retiros"><div class="state-loading">Cargando...</div></div>
   </div>
 
 </div>
@@ -716,12 +945,24 @@ textarea.form-input { resize: vertical; min-height: 70px; }
   <button class="nav-btn" onclick="showTab('fijos',this)">
     <span class="ni">🏠</span>Fijos
   </button>
-  <button class="nav-btn" onclick="showTab('analisis',this)">
-    <span class="ni">📈</span>Análisis
+  <button class="nav-btn" onclick="showTab('retiros',this)">
+    <span class="ni">💸</span>Retiros
   </button>
 </nav>
 
 <div class="toast" id="toast"></div>
+
+<!-- ══ DAY DETAIL MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarDetalleDia()"></div>
+<div class="modal-sheet" id="modal-sheet">
+  <div class="modal-handle"></div>
+  <div class="modal-header">
+    <h2 id="modal-title">Detalle del día</h2>
+    <button class="modal-close" onclick="cerrarDetalleDia()">✕</button>
+  </div>
+  <div class="modal-summary" id="modal-summary"></div>
+  <div class="modal-body" id="modal-body"></div>
+</div>
 
 <script>
 const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbywO2xjeJ8eLb4vQsQvMlOA-YrvvpUhkr6WpioGEpm_Xs_GGILrtakmiiwwwB2hHjXY/exec';
@@ -910,8 +1151,25 @@ async function guardar(tipo) {
     document.querySelectorAll('#chips-fijo .chip').forEach((c,i) => c.classList.toggle('sel', i===0));
   }
 
+  if (tipo === 'retiros') {
+    const fecha = document.getElementById('r-fecha').value || hoy();
+    const desc  = document.getElementById('r-desc').value.trim() || 'Retiro personal';
+    const monto = parseFloat(document.getElementById('r-monto').value);
+    if (!monto || monto <= 0) { toast('⚠️ Ingresá un monto'); return; }
+    fila = [id, fecha, desc, monto];
+    document.getElementById('r-fecha').value = hoy();
+    document.getElementById('r-desc').value  = '';
+    document.getElementById('r-monto').value = '';
+  }
+
   toast('⏳ Guardando...');
   try {
+    // Si estamos editando, eliminar el registro viejo primero
+    if (_editando) {
+      await escribir('_eliminados', [Date.now(), _editando.tipo, _editando.id]);
+      _editando = null;
+      ocultarBarraEdicion(tipo);
+    }
     await escribir(tipo, fila);
     toast('✅ ¡Guardado!');
     setTimeout(() => cargarLista(tipo), 400);
@@ -932,7 +1190,8 @@ async function eliminar(tipo, id) {
 }
 
 // ── Render tx item ────────────────────────────────────────
-function txItem({ icon, iconClass, desc, meta, monto, tipo, id, isExpense }) {
+function txItem({ icon, iconClass, desc, meta, monto, tipo, id, isExpense, rawData }) {
+  const editBtn = (id && rawData) ? `<button class="tx-edit" onclick="editarItem('${tipo}',${JSON.stringify(rawData).replace(/"/g, '&quot;')})">✏️</button>` : '';
   return `<div class="tx-item">
     <div class="tx-icon ${iconClass}">${icon}</div>
     <div class="tx-body">
@@ -941,6 +1200,7 @@ function txItem({ icon, iconClass, desc, meta, monto, tipo, id, isExpense }) {
     </div>
     <div class="tx-right">
       <span class="tx-amount ${isExpense ? 'neg' : 'pos'}">${isExpense ? '−' : '+'}${fmt(monto)}</span>
+      ${editBtn}
       ${id ? `<button class="tx-del" onclick="eliminar('${tipo}',${id})">✕</button>` : ''}
     </div>
   </div>`;
@@ -1025,10 +1285,11 @@ async function cargarLista(tipo) {
       const badge = r[4] === 'Transferencia'
         ? '<span class="pago-badge pago-trans">📲 Transf.</span>'
         : '<span class="pago-badge pago-efec">💵 Efectivo</span>';
-      return txItem({ icon:'💰', iconClass:'v', desc: r[2] + badge, meta:fmtF(r[1]), monto:r[3], tipo, id:r[0], isExpense:false });
+      return txItem({ icon:'💰', iconClass:'v', desc: r[2] + badge, meta:fmtF(r[1]), monto:r[3], tipo, id:r[0], isExpense:false, rawData:r });
     }
-    if (tipo === 'compras') return txItem({ icon:'🛒', iconClass:'c', desc:r[2], meta:fmtF(r[1]) + (r[4] ? ' · '+r[4] : ''), monto:r[3], tipo, id:r[0], isExpense:true });
-    if (tipo === 'gastos')  return txItem({ icon:'📋', iconClass:'g', desc:r[3], meta:fmtF(r[1]) + ' · '+r[2], monto:r[4], tipo, id:r[0], isExpense:true });
+    if (tipo === 'compras') return txItem({ icon:'🛒', iconClass:'c', desc:r[2], meta:fmtF(r[1]) + (r[4] ? ' · '+r[4] : ''), monto:r[3], tipo, id:r[0], isExpense:true, rawData:r });
+    if (tipo === 'gastos')  return txItem({ icon:'📋', iconClass:'g', desc:r[3], meta:fmtF(r[1]) + ' · '+r[2], monto:r[4], tipo, id:r[0], isExpense:true, rawData:r });
+    if (tipo === 'retiros') return txItem({ icon:'💸', iconClass:'r', desc:r[2], meta:fmtF(r[1]), monto:r[3], tipo, id:r[0], isExpense:true, rawData:r });
   }).join('');
 }
 
@@ -1038,24 +1299,22 @@ async function cargarResumen() {
   const elim = await leer('_eliminados');
   const idsElim = new Set(elim.map(r => String(r[2])));
 
-  const [ventas, compras, gastos, fijos] = await Promise.all([
-    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos')
+  const [ventas, compras, gastos, fijos, retiros] = await Promise.all([
+    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos'), leer('retiros')
   ]);
 
   const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
-  const V = fil(ventas), C = fil(compras), G = fil(gastos), F = fil(fijos);
+  const V = fil(ventas), C = fil(compras), G = fil(gastos), F = fil(fijos), R = fil(retiros);
 
   const ahora = new Date().toISOString().slice(0,7);
   const sel   = document.getElementById('mesFiltro');
   if (!sel.value) sel.value = ahora;
   const mes   = sel.value;
 
-  // Para saldo acumulado necesitamos todos los meses con datos
-  const todos  = [...V,...C,...G].map(r => getMes(r[1])).filter(Boolean);
-  const meses  = [...new Set([ahora,...todos])].sort();
   const vM = V.filter(r => getMes(r[1]) === mes);
   const cM = C.filter(r => getMes(r[1]) === mes);
   const gM = G.filter(r => getMes(r[1]) === mes);
+  const rM = R.filter(r => getMes(r[1]) === mes);
 
   const pF   = r => /^\d{4}-\d{2}/.test(String(r[1]));
   const FM   = F.filter(r => pF(r) && getMes(normD(r[1])) === mes);
@@ -1063,7 +1322,9 @@ async function cargarResumen() {
   const totC = cM.reduce((s,r) => s + parseFloat(r[3]||0), 0);
   const totG = gM.reduce((s,r) => s + parseFloat(r[4]||0), 0);
   const totF = FM.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const totR = rM.reduce((s,r) => s + parseFloat(r[3]||0), 0);
   const res  = totV - totC - totG - totF;
+  const disponible = res - totR;
 
   const vEfec   = vM.filter(r => !r[4] || r[4] === 'Efectivo').reduce((s,r) => s + parseFloat(r[3]||0), 0);
   const vTrans  = vM.filter(r => r[4] === 'Transferencia').reduce((s,r) => s + parseFloat(r[3]||0), 0);
@@ -1075,17 +1336,6 @@ async function cargarResumen() {
   document.getElementById('tot-g').textContent = fmt(totG);
   document.getElementById('tot-f').textContent = fmt(totF);
 
-  // Saldo acumulado de meses anteriores
-  const mesesAnt = meses.filter(m => m < mes);
-  const saldoAnt = mesesAnt.reduce((acc, m) => {
-    const tV = V.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
-    const tC = C.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
-    const tG = G.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[4]||0), 0);
-    const tF = F.filter(r => pF(r) && getMes(normD(r[1])) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
-    return acc + (tV - tC - tG - tF);
-  }, 0);
-  const saldoTotal = saldoAnt + res;
-
   const rc  = document.getElementById('result-card');
   const ra  = document.getElementById('tot-r');
   const rsb = document.getElementById('tot-r-sub');
@@ -1093,9 +1343,19 @@ async function cargarResumen() {
   if (res >= 0) { ra.textContent = fmt(res); rc.classList.remove('neg'); }
   else          { ra.textContent = '−' + fmt(Math.abs(res)); rc.classList.add('neg'); }
 
-  const fmtSaldo = n => (n >= 0 ? '+' : '−') + fmt(Math.abs(n));
-  document.getElementById('saldo-ant').textContent   = fmtSaldo(saldoAnt);
-  document.getElementById('saldo-total').textContent = fmtSaldo(saldoTotal);
+  document.getElementById('tot-ret').textContent = totR > 0 ? '−' + fmt(totR) : '$0';
+  const fmtDisp = n => (n >= 0 ? '' : '−') + fmt(Math.abs(n));
+  document.getElementById('saldo-disponible').textContent = fmtDisp(disponible);
+
+  // Retiro card grande
+  const retCard = document.getElementById('retiro-card');
+  if (totR > 0) {
+    retCard.style.display = '';
+    document.getElementById('ret-big').textContent = fmt(totR);
+    document.getElementById('ret-sub').textContent = `${rM.length} retiro${rM.length !== 1 ? 's' : ''} este mes · Queda ${fmtDisp(disponible)} en caja`;
+  } else {
+    retCard.style.display = 'none';
+  }
 
   // ── Ganancia por día ──
   const diasMap = {};
@@ -1127,8 +1387,8 @@ async function cargarResumen() {
         const neto = ing - egr;
         const d        = f.slice(8, 10);
         const label    = DIAS[new Date(f + 'T12:00:00').getDay()] + ' ' + d;
-        return `<div class="day-row">
-          <span class="day-date">${label}</span>
+        return `<div class="day-row clickable" onclick="abrirDetalleDia('${f}')">
+          <span class="day-date">${label} ›</span>
           <span class="day-ing">+${fmt(ing)}</span>
           <span class="day-egr">−${fmt(egr)}</span>
           <span class="day-res ${neto >= 0 ? 'pos' : 'neg'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</span>
@@ -1141,41 +1401,35 @@ async function cargarResumen() {
           <span class="day-res ${totalNeto >= 0 ? 'pos' : 'neg'}">${totalNeto >= 0 ? '+' : '−'}${fmt(Math.abs(totalNeto))}</span>
         </div>`
     : emptyState('📅', 'Sin movimientos en este mes');
+
+  // ── Análisis integrado ──
+  cargarAnalisis(V, C, G, F, R, mes, pF);
 }
 
 // ── Análisis ─────────────────────────────────────────────
 const META_DIA = 100000;
 
-async function cargarAnalisis() {
+async function cargarAnalisis(V, C, G, F, R, mes, pFijo) {
   ['analisis-meta','analisis-cmp','analisis-chart'].forEach(id =>
     document.getElementById(id).innerHTML = '<div class="state-loading">Cargando...</div>');
 
-  const mes   = document.getElementById('mesFiltro').value || hoy().slice(0,7);
   const [y,m] = mes.split('-').map(Number);
   const mesPrev = m === 1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,'0')}`;
 
-  const elim = await leer('_eliminados');
-  const idsElim = new Set(elim.map(r => String(r[2])));
-  const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
-
-  const [ventas, compras, gastos, fijos] = await Promise.all([
-    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos')
-  ]);
-  const V = fil(ventas), C = fil(compras), G = fil(gastos), F = fil(fijos);
-
-  const pFijo = r => /^\d{4}-\d{2}/.test(String(r[1]));
   const vM  = V.filter(r => getMes(r[1]) === mes);
   const cM  = C.filter(r => getMes(r[1]) === mes);
   const gM  = G.filter(r => getMes(r[1]) === mes);
   const fM  = F.filter(r => pFijo(r) && getMes(normD(r[1])) === mes);
+  const rM  = R.filter(r => getMes(r[1]) === mes);
   const vP  = V.filter(r => getMes(r[1]) === mesPrev);
   const cP  = C.filter(r => getMes(r[1]) === mesPrev);
   const gP  = G.filter(r => getMes(r[1]) === mesPrev);
   const fP  = F.filter(r => pFijo(r) && getMes(normD(r[1])) === mesPrev);
+  const rP  = R.filter(r => getMes(r[1]) === mesPrev);
 
   const sum = (arr, i) => arr.reduce((s,r) => s + parseFloat(r[i]||0), 0);
-  const totVM = sum(vM,3), totCM = sum(cM,3), totGM = sum(gM,4), totFM = sum(fM,3);
-  const totVP = sum(vP,3), totCP = sum(cP,3), totGP = sum(gP,4), totFP = sum(fP,3);
+  const totVM = sum(vM,3), totCM = sum(cM,3), totGM = sum(gM,4), totFM = sum(fM,3), totRM = sum(rM,3);
+  const totVP = sum(vP,3), totCP = sum(cP,3), totGP = sum(gP,4), totFP = sum(fP,3), totRP = sum(rP,3);
   const resM  = totVM - totCM - totGM - totFM;
   const resP  = totVP - totCP - totGP - totFP;
 
@@ -1223,7 +1477,8 @@ async function cargarAnalisis() {
     cmpRow('🛒 Compras',  totCM, totCP, true)  +
     cmpRow('📋 Gastos',   totGM, totGP, true)  +
     cmpRow('🏠 Fijos',    totFM, totFP, true)  +
-    cmpRow('✅ Resultado', resM,  resP,  false);
+    cmpRow('✅ Resultado', resM,  resP,  false) +
+    cmpRow('💸 Retiros',  totRM, totRP, true);
 
   // ── GRÁFICO ──
   const diasMap = {};
@@ -1284,9 +1539,130 @@ document.getElementById('v-fecha').value   = hoy();
 document.getElementById('c-fecha').value   = hoy();
 document.getElementById('g-fecha').value   = hoy();
 document.getElementById('f-fecha').value   = hoy();
+document.getElementById('r-fecha').value   = hoy();
 document.getElementById('mesFiltro').value = hoy().slice(0,7);
 cargarChipsProv();
 cargarResumen();
+
+// ── Detalle del día ─────────────────────────────────────
+let _datosCache = null;
+
+async function obtenerDatosCache() {
+  const elim = await leer('_eliminados');
+  const idsElim = new Set(elim.map(r => String(r[2])));
+  const [ventas, compras, gastos, fijos, retiros] = await Promise.all([
+    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos'), leer('retiros')
+  ]);
+  const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
+  return { V: fil(ventas), C: fil(compras), G: fil(gastos), F: fil(fijos), R: fil(retiros) };
+}
+
+async function abrirDetalleDia(fecha) {
+  const data = await obtenerDatosCache();
+  const { V, C, G, F, R } = data;
+  const pF = r => /^\d{4}-\d{2}/.test(String(r[1]));
+
+  const vDia = V.filter(r => normD(r[1]) === fecha);
+  const cDia = C.filter(r => normD(r[1]) === fecha);
+  const gDia = G.filter(r => normD(r[1]) === fecha);
+  const fDia = F.filter(r => pF(r) && normD(r[1]) === fecha);
+  const rDia = R.filter(r => normD(r[1]) === fecha);
+
+  const totV = vDia.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const totC = cDia.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const totG = gDia.reduce((s,r) => s + parseFloat(r[4]||0), 0);
+  const totF = fDia.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const totRD = rDia.reduce((s,r) => s + parseFloat(r[3]||0), 0);
+  const neto = totV - totC - totG - totF;
+
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const dateObj = new Date(fecha + 'T12:00:00');
+  const dayName = DIAS[dateObj.getDay()];
+  const d = fecha.slice(8,10);
+  const m = fecha.slice(5,7);
+
+  document.getElementById('modal-title').textContent = `${dayName} ${d}/${m}`;
+
+  document.getElementById('modal-summary').innerHTML = `
+    <div class="ms-item">
+      <div class="ms-label">Ingresos</div>
+      <div class="ms-value c-green">+${fmt(totV)}</div>
+    </div>
+    <div class="ms-item">
+      <div class="ms-label">Egresos</div>
+      <div class="ms-value c-amber">−${fmt(totC + totG + totF)}</div>
+    </div>
+    <div class="ms-item">
+      <div class="ms-label">Resultado</div>
+      <div class="ms-value ${neto >= 0 ? 'c-green' : 'c-red'}">${neto >= 0 ? '+' : '−'}${fmt(Math.abs(neto))}</div>
+    </div>`;
+
+  let html = '';
+
+  // Ventas
+  html += `<div class="detail-section">
+    <div class="ds-title">💰 Ventas (${vDia.length})</div>`;
+  if (vDia.length) {
+    html += vDia.map(r => {
+      const badge = r[4] === 'Transferencia'
+        ? '<span class="pago-badge pago-trans">📲 Transf.</span>'
+        : '<span class="pago-badge pago-efec">💵 Efectivo</span>';
+      return txItem({ icon:'💰', iconClass:'v', desc: r[2] + badge, meta: fmtF(r[1]), monto: r[3], tipo:'ventas', id: r[0], isExpense: false });
+    }).join('');
+  } else {
+    html += '<div class="ds-empty">Sin ventas este día</div>';
+  }
+  html += '</div>';
+
+  // Compras
+  html += `<div class="detail-section">
+    <div class="ds-title">🛒 Compras a proveedores (${cDia.length})</div>`;
+  if (cDia.length) {
+    html += cDia.map(r => txItem({ icon:'🛒', iconClass:'c', desc: r[2], meta: fmtF(r[1]) + (r[4] ? ' · '+r[4] : ''), monto: r[3], tipo:'compras', id: r[0], isExpense: true })).join('');
+  } else {
+    html += '<div class="ds-empty">Sin compras este día</div>';
+  }
+  html += '</div>';
+
+  // Gastos
+  html += `<div class="detail-section">
+    <div class="ds-title">📋 Gastos (${gDia.length})</div>`;
+  if (gDia.length) {
+    html += gDia.map(r => txItem({ icon:'📋', iconClass:'g', desc: r[3], meta: fmtF(r[1]) + ' · ' + r[2], monto: r[4], tipo:'gastos', id: r[0], isExpense: true })).join('');
+  } else {
+    html += '<div class="ds-empty">Sin gastos este día</div>';
+  }
+  html += '</div>';
+
+  // Fijos
+  if (fDia.length) {
+    html += `<div class="detail-section">
+      <div class="ds-title">🏠 Costos fijos (${fDia.length})</div>`;
+    html += fDia.map(r => txItem({ icon:'🏠', iconClass:'c', desc: r[2], meta: fmtF(r[1]), monto: r[3], tipo:'fijos', id: r[0], isExpense: true })).join('');
+    html += '</div>';
+  }
+
+  // Retiros
+  if (rDia.length) {
+    html += `<div class="detail-section">
+      <div class="ds-title">💸 Retiros personales (${rDia.length})</div>`;
+    html += rDia.map(r => txItem({ icon:'💸', iconClass:'r', desc: r[2], meta: fmtF(r[1]), monto: r[3], tipo:'retiros', id: r[0], isExpense: true })).join('');
+    html += '</div>';
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+
+  // Abrir modal
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-sheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarDetalleDia() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('modal-sheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
 </script>
 </body>
 </html>
