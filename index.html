@@ -606,6 +606,49 @@ textarea.form-input { resize: vertical; min-height: 70px; }
   flex: 1;
 }
 
+/* ── HISTORIAL ── */
+.hist-mes {
+  background: var(--surface);
+  border-radius: 16px;
+  margin: 12px 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.hist-header {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.hist-mes-name { font-weight: 700; font-size: 15px; }
+.hist-resultado { font-weight: 800; font-size: 15px; }
+.hist-rows { display: none; border-top: 1px solid var(--border); padding: 8px 16px 14px; }
+.hist-rows.open { display: block; }
+.hist-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.hist-row:last-child { border-bottom: none; }
+.hist-row.total { font-weight: 800; font-size: 14px; padding-top: 10px; }
+.btn-hist-ver {
+  width: 100%;
+  margin-top: 12px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .detail-section { margin-bottom: 16px; }
 .detail-section:last-child { margin-bottom: 0; }
 .ds-title {
@@ -631,7 +674,7 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 <header class="app-header">
   <div class="header-cal">
     <label for="mesFiltro" class="cal-icon">📅</label>
-    <input type="month" class="month-input" id="mesFiltro" onchange="cargarResumen()">
+    <input type="month" class="month-input" id="mesFiltro" onchange="onMesCambio()">
   </div>
   <div class="header-left">
     <h1>🌿 Mi Dietética</h1>
@@ -928,6 +971,11 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 
 </div>
 
+<!-- ══ HISTORIAL ══ -->
+<div id="tab-historial" class="section">
+  <div id="hist-content"><div class="state-loading">Cargando...</div></div>
+</div>
+
 <!-- ══ BOTTOM NAV ══ -->
 <nav class="bottom-nav" style="font-size:9px">
   <button class="nav-btn active" onclick="showTab('resumen',this)">
@@ -937,7 +985,7 @@ textarea.form-input { resize: vertical; min-height: 70px; }
     <span class="ni">💰</span>Ventas
   </button>
   <button class="nav-btn" onclick="showTab('compras',this)">
-    <span class="ni">🛒</span>Proveedores
+    <span class="ni">🛒</span>Proveed.
   </button>
   <button class="nav-btn" onclick="showTab('gastos',this)">
     <span class="ni">📋</span>Gastos
@@ -947,6 +995,9 @@ textarea.form-input { resize: vertical; min-height: 70px; }
   </button>
   <button class="nav-btn" onclick="showTab('retiros',this)">
     <span class="ni">💸</span>Retiros
+  </button>
+  <button class="nav-btn" onclick="showTab('historial',this)">
+    <span class="ni">🗂️</span>Historial
   </button>
 </nav>
 
@@ -1094,8 +1145,16 @@ function showTab(name, el) {
   document.getElementById('tab-' + name).classList.add('active');
   el.classList.add('active');
   if (name === 'resumen') cargarResumen();
+  else if (name === 'historial') cargarHistorial();
   else if (name === 'analisis') cargarAnalisis();
   else cargarLista(name);
+}
+
+function onMesCambio() {
+  const id = document.querySelector('.section.active')?.id?.replace('tab-', '');
+  if (!id || id === 'resumen') cargarResumen();
+  else if (id === 'historial') cargarHistorial();
+  else cargarLista(id);
 }
 
 // ── Guardar ──────────────────────────────────────────────
@@ -1220,11 +1279,17 @@ async function cargarLista(tipo) {
   const idsElim = new Set(elim.map(r => String(r[2])));
   datos = datos.filter(r => !idsElim.has(String(r[0])));
 
+  // Filtrar por mes seleccionado (excepto fijos que muestra todos)
+  if (tipo !== 'fijos') {
+    const mes = document.getElementById('mesFiltro').value || hoy().slice(0,7);
+    datos = datos.filter(r => getMes(r[1]) === mes);
+  }
+
   const cnt = document.getElementById('cnt-' + tipo);
   if (cnt) cnt.textContent = datos.length;
 
   if (!datos.length) {
-    cont.innerHTML = emptyState('📭', 'Sin registros aún');
+    cont.innerHTML = emptyState('📭', 'Sin registros este mes');
     return;
   }
 
@@ -1662,6 +1727,71 @@ function cerrarDetalleDia() {
   document.getElementById('modal-overlay').classList.remove('open');
   document.getElementById('modal-sheet').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ── Historial ─────────────────────────────────────────────
+async function cargarHistorial() {
+  document.getElementById('hist-content').innerHTML = '<div class="state-loading">Cargando...</div>';
+
+  const elim = await leer('_eliminados');
+  const idsElim = new Set(elim.map(r => String(r[2])));
+  const [ventas, compras, gastos, fijos, retiros] = await Promise.all([
+    leer('ventas'), leer('compras'), leer('gastos'), leer('fijos'), leer('retiros')
+  ]);
+  const fil = arr => arr.filter(r => !idsElim.has(String(r[0])));
+  const V = fil(ventas), C = fil(compras), G = fil(gastos), F = fil(fijos), R = fil(retiros);
+  const pF = r => /^\d{4}-\d{2}/.test(String(r[1]));
+
+  const todosLosMeses = new Set([
+    ...V.map(r => getMes(r[1])),
+    ...C.map(r => getMes(r[1])),
+    ...G.map(r => getMes(r[1])),
+    ...F.filter(pF).map(r => getMes(normD(r[1]))),
+    ...R.map(r => getMes(r[1])),
+  ].filter(Boolean));
+
+  const meses = [...todosLosMeses].sort((a,b) => b.localeCompare(a));
+
+  if (!meses.length) {
+    document.getElementById('hist-content').innerHTML = emptyState('📭', 'Sin datos aún');
+    return;
+  }
+
+  document.getElementById('hist-content').innerHTML = meses.map(m => {
+    const tV = V.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const tC = C.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const tG = G.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[4]||0), 0);
+    const tF = F.filter(r => pF(r) && getMes(normD(r[1])) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const tR = R.filter(r => getMes(r[1]) === m).reduce((s,r) => s + parseFloat(r[3]||0), 0);
+    const res = tV - tC - tG - tF;
+    const resClass = res >= 0 ? 'c-green' : 'c-red';
+    const resStr = (res >= 0 ? '+' : '−') + fmt(Math.abs(res));
+    return `<div class="hist-mes">
+      <div class="hist-header" onclick="toggleHist(this)">
+        <span class="hist-mes-name">${mesLabel(m)}</span>
+        <span class="hist-resultado ${resClass}">${resStr}</span>
+      </div>
+      <div class="hist-rows">
+        <div class="hist-row"><span>💰 Ventas</span><span class="c-green">${fmt(tV)}</span></div>
+        <div class="hist-row"><span>🛒 Proveedores</span><span class="c-amber">−${fmt(tC)}</span></div>
+        <div class="hist-row"><span>📋 Gastos</span><span class="c-blue">−${fmt(tG)}</span></div>
+        <div class="hist-row"><span>🏠 Costos fijos</span><span class="c-red">−${fmt(tF)}</span></div>
+        ${tR > 0 ? `<div class="hist-row"><span>💸 Retiros</span><span style="color:var(--purple)">−${fmt(tR)}</span></div>` : ''}
+        <div class="hist-row total"><span>Resultado</span><span class="${resClass}">${resStr}</span></div>
+        <button class="btn-hist-ver" onclick="verMesDetalle('${m}')">Ver detalle completo →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHist(el) {
+  el.nextElementSibling.classList.toggle('open');
+}
+
+function verMesDetalle(mes) {
+  document.getElementById('mesFiltro').value = mes;
+  const btn = document.querySelector('.nav-btn');
+  showTab('resumen', btn);
 }
 </script>
 </body>
