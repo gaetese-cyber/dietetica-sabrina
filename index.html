@@ -1018,6 +1018,8 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 <script>
 const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbzFeL6iuen8CwV_cZdbAnvi42aYDxDLH-ENPObPbUXjtBCXDPNUiC9pUgkyAJwi273E/exec';
 
+let _editando = null;
+
 // ── Helpers ──────────────────────────────────────────────
 function hoy() { return new Date().toISOString().slice(0,10); }
 
@@ -1718,6 +1720,12 @@ async function abrirDetalleDia(fecha) {
   document.getElementById('modal-sheet').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
+function editarItem(tipo, rawData) {
+  toast('Para editar, eliminá el registro y cargalo de nuevo.');
+}
+
+function ocultarBarraEdicion(tipo) {}
 
 function cerrarDetalleDia() {
   document.getElementById('modal-overlay').classList.remove('open');
