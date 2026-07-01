@@ -1129,12 +1129,8 @@ async function leer(tipo) {
 }
 
 async function escribir(tipo, fila) {
-  const res = await fetch(URL_SCRIPT, {
-    method: 'POST',
-    body: JSON.stringify({ tipo, fila }),
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    mode: 'no-cors'
-  });
+  const url = `${URL_SCRIPT}?action=escribir&tipo=${encodeURIComponent(tipo)}&fila=${encodeURIComponent(JSON.stringify(fila))}`;
+  const res = await fetch(url);
   return res;
 }
 
