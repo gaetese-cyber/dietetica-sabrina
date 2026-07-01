@@ -1228,8 +1228,8 @@ async function guardar(tipo) {
     await escribir(tipo, fila);
     toast('✅ ¡Guardado!');
     setTimeout(() => cargarLista(tipo), 400);
-  } catch {
-    toast('❌ Error al guardar. Revisá la conexión.');
+  } catch(err) {
+    toast('❌ ' + (err && err.message ? err.message : String(err)));
   }
 }
 
